@@ -8,38 +8,33 @@ import 'package:flutter/services.dart';
 
 class Home extends StatefulWidget {
   @override
+
   _HomeState createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> {
   double valorGasolina = 0.0;
   double valorAlcool = 0.0;
-
-  TextField _nomePostoController = TextField();
-  TextField _precoGasolina = TextField();
-  TextField _precoAlcool = TextField();
-  TextField _dataRegistro = TextField();
+  TextEditingController _nomePostoController = TextEditingController();
+  TextEditingController _precoGasolina = TextEditingController();
+  TextEditingController _precoAlcool = TextEditingController();
+  TextEditingController _dataRegistro = TextEditingController();
 
   PostoHelper helper = PostoHelper();
+  Posto posto = Posto();
 
   @override
-  void iniState() {
-    super.initState();
-
-    /* Posto posto00 = Posto();
-    posto00.nomePosto = "Nome do posto00";
-    posto00.tipoCombustivel = "Comum";
-    posto00.gasolinaPreco = "487";
-    posto00.alcoolPreco = "2970";
-    posto00.dataConsulta = DateTime.now();
-    helper.insert(posto00);*/
-  }
-
-  void _showPostoPage({Posto posto}) {
-    Navigator.push(
+  void _showPostoPage({Posto posto}) async {
+    final regPosto = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => HistoricoPage(posto: posto)),
     );
+  }
+
+  void _gravaDadosPosto({Posto posto}) async {
+    if (posto != null) {
+      await helper.insert(posto);
+    }
   }
 
   Widget buildAppBar() {
@@ -58,7 +53,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget buildRaisedButton() {
+  Widget buildRaisedButton(Posto posto) {
     return RaisedButton(
       child: Text("Verificar"),
       color: Colors.black,
@@ -66,20 +61,23 @@ class _HomeState extends State<Home> {
       textColor: Colors.white,
       padding: EdgeInsets.fromLTRB(140.0, 20.0, 140.0, 20.0),
       onPressed: () {
-        double resultDif = valorAlcool % valorGasolina;
+        double resultDif = posto.alcoolPreco % posto.gasolinaPreco;
         String mensagem = "";
         if (resultDif >= 0.7) {
           mensagem =
-              "O abastecimento com GASOLINA é mais vantajoso nesse posto";
+          "O abastecimento com GASOLINA é mais vantajoso nesse posto";
         } else {
           mensagem = "O abastecimento com ALCOOL é mais vantajoso nesse posto";
         }
+        posto.dataConsulta = DateTime.now();
+        _gravaDadosPosto(posto: posto);
         _ApresenteMelhorOpcao(context, mensagem);
       },
     );
   }
 
-  MoneyMaskedTextController buildMoneyMaskedTextController() {
+  MoneyMaskedTextController buildMoneyMaskedTextController(
+      TextEditingController campo) {
     return new MoneyMaskedTextController(
         decimalSeparator: ',', thousandSeparator: '.');
   }
@@ -98,6 +96,10 @@ class _HomeState extends State<Home> {
                 labelStyle: TextStyle(color: Colors.black, fontSize: 20.0),
                 border: OutlineInputBorder(),
               ),
+              controller: _nomePostoController,
+              onChanged: (value) {
+                posto.nomePosto = value;
+              },
             ),
             Divider(),
             TextField(
@@ -107,38 +109,35 @@ class _HomeState extends State<Home> {
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.numberWithOptions(decimal: true),
-              controller: buildMoneyMaskedTextController(),
+              controller: buildMoneyMaskedTextController(_precoGasolina),
               onChanged: (value) {
                 try {
-                  valorGasolina = double.parse(value);
+                  posto.gasolinaPreco = double.parse(value);
                 } catch (ex) {
-                  valorGasolina = 0.0;
+                  posto.gasolinaPreco = 0.0;
                 }
               },
             ),
             Divider(),
             TextField(
-              controller: buildMoneyMaskedTextController(),
+              controller: buildMoneyMaskedTextController(_precoAlcool),
               decoration: InputDecoration(
                 labelText: "Preço do alcool",
                 labelStyle: TextStyle(color: Colors.black, fontSize: 20.0),
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [
-                BlacklistingTextInputFormatter(new RegExp('[\\-|\\ ]'))
-              ],
               onChanged: (value) {
                 try {
-                  valorAlcool = double.parse(value);
+                  posto.alcoolPreco = double.parse(value);
                 } catch (ex) {
-                  valorAlcool = 0.0;
+                  posto.alcoolPreco = 0.0;
                 }
               },
             ),
             Divider(),
             Container(
-              child: buildRaisedButton(),
+              child: buildRaisedButton(posto),
             ),
           ],
         ),
@@ -160,7 +159,6 @@ class _HomeState extends State<Home> {
                     Navigator.pop(context);
                   })
             ]);
-        Navigator.pop(context);
       },
     );
   }
@@ -169,4 +167,8 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return buildScaffold();
   }
+  void iniState() {
+    super.initState();
+  }
+
 }

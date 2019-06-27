@@ -3,7 +3,6 @@ import 'package:conbustivel_ideal/model/posto.dart';
 import 'package:flutter/cupertino.dart' as prefix1;
 import 'package:flutter/material.dart';
 
-
 class HistoricoPage extends StatefulWidget {
   @override
   final Posto posto;
@@ -17,6 +16,10 @@ class _HistoricoPageState extends State<HistoricoPage> {
   PostoHelper postoHelper = PostoHelper();
 
   List<Posto> lsPosto = List();
+
+  Map<String, dynamic> _ultimoPostoRemovido;
+  int _ultimoPostoRemovidoPosicao;
+  List toDoList = [];
 
   Widget buildAppBar() {
     return AppBar(
@@ -36,8 +39,7 @@ class _HistoricoPageState extends State<HistoricoPage> {
     });
   }
 
-
-  Widget buildContainerImagem(){
+  Widget buildContainerImagem() {
     return GestureDetector(
       child: Container(
         width: 140.0,
@@ -50,8 +52,7 @@ class _HistoricoPageState extends State<HistoricoPage> {
           ),
         ),
       ),
-      onTap: () {
-      },
+      onTap: () {},
     );
   }
 
@@ -66,7 +67,7 @@ class _HistoricoPageState extends State<HistoricoPage> {
                 padding: EdgeInsets.only(left: 10.0),
                 child: Column(
                   children: <Widget>[
-                buildContainerImagem(),
+                    buildContainerImagem(),
                     Text(
                       lsPosto[index].nomePosto ?? "-",
                       style: TextStyle(
@@ -102,7 +103,34 @@ class _HistoricoPageState extends State<HistoricoPage> {
         padding: EdgeInsets.all(10.0),
         itemCount: lsPosto.length,
         itemBuilder: (context, index) {
-          return buildCardHistorico(context, index);
+          return Dismissible(
+            direction: DismissDirection.startToEnd,
+            child: buildCardHistorico(context, index),
+            onDismissed: (direction) {
+              setState(() {
+                toDoList = lsPosto;
+                _ultimoPostoRemovido = Map.from(toDoList[index]);
+                _ultimoPostoRemovidoPosicao = index;
+                toDoList.removeAt(index);
+                // saveData();
+                final snak = SnackBar(
+                  content: Text(
+                      "Posto \" ${_ultimoPostoRemovido["titulo"]} \"removido"),
+                  action: SnackBarAction(
+                    label: "Desfazer",
+                    onPressed: (){
+                      setState(() {
+                        toDoList.insert(_ultimoPostoRemovidoPosicao, _ultimoPostoRemovido);
+                        // _saveData();
+                      });
+
+                    },
+                  ),
+                  duration: Duration(seconds: 3),
+                );
+              });
+            },
+          );
         });
   }
 

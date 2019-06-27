@@ -1,8 +1,8 @@
 class Posto {
   int id;
   String nomePosto;
-  String gasolinaPreco;
-  String alcoolPreco;
+  double gasolinaPreco;
+  double alcoolPreco;
   String tipoCombustivel;
   DateTime dataConsulta;
 
@@ -37,9 +37,9 @@ class Posto {
     return "Posto[ id: $id,"
         "nomePosto: $nomePosto"
         "gasolinaPreco: $gasolinaPreco"
-        "String alcoolPreco: $alcoolPreco"
-        "String tipoCombustivel: $tipoCombustivel"
-        "DateTime dataConsulta : $dataConsulta"
+        "alcoolPreco: $alcoolPreco"
+        "tipoCombustivel: $tipoCombustivel"
+        "dataConsulta : $dataConsulta"
         "]";
   }
 }
